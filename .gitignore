@@ -22,3 +22,14 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Ficheiros de Sistema 
+.DS_Store
+Thumbs.db
+
+# Configurações do VS Code 
+.vscode/
+
+# Lixo gerado pelo Spring Boot
+HELP.md
+
