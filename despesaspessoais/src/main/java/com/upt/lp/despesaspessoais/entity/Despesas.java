@@ -1,5 +1,7 @@
 package com.upt.lp.despesaspessoais.entity;
 
+import com.upt.lp.despesaspessoais.enums.MetodoPagamento;
+import com.upt.lp.despesaspessoais.enums.TipoMovimento;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -13,7 +15,12 @@ public class Despesas {
     private String descricao;
     private Double valor;
     private LocalDate data;
-    private String metodoPagamento;
+
+    @Enumerated(EnumType.STRING)
+    private MetodoPagamento metodoPagamento;
+
+    @Enumerated(EnumType.STRING)
+    private TipoMovimento tipo; // NOVO: Define se é GANHO ou GASTO
 
     @ManyToOne
     @JoinColumn(name = "categoria_id")
@@ -25,14 +32,15 @@ public class Despesas {
 
     public Despesas() {}
 
-    public Despesas(String descricao, Double valor, LocalDate data, String metodoPagamento) {
+    public Despesas(String descricao, Double valor, LocalDate data, TipoMovimento tipo, MetodoPagamento metodo) {
         this.descricao = descricao;
         this.valor = valor;
         this.data = data;
-        this.metodoPagamento = metodoPagamento;
+        this.tipo = tipo;
+        this.metodoPagamento = metodo;
     }
 
-    // Getters e Setters normais...
+    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getDescricao() { return descricao; }
@@ -41,10 +49,10 @@ public class Despesas {
     public void setValor(Double valor) { this.valor = valor; }
     public LocalDate getData() { return data; }
     public void setData(LocalDate data) { this.data = data; }
-    public String getMetodoPagamento() { return metodoPagamento; }
-    public void setMetodoPagamento(String metodoPagamento) { this.metodoPagamento = metodoPagamento; }
-    
-    // Getters e Setters das Relações
+    public MetodoPagamento getMetodoPagamento() { return metodoPagamento; }
+    public void setMetodoPagamento(MetodoPagamento metodoPagamento) { this.metodoPagamento = metodoPagamento; }
+    public TipoMovimento getTipo() { return tipo; }
+    public void setTipo(TipoMovimento tipo) { this.tipo = tipo; }
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public Utilizador getUtilizador() { return utilizador; }

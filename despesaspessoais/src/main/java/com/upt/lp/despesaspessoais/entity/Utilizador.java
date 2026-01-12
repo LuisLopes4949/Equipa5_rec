@@ -9,17 +9,14 @@ public class Utilizador {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nome;
     private String email;
 
-    // @JsonIgnore evita o loop infinito ao mostrar os dados
-    @OneToMany(mappedBy = "utilizador", cascade = CascadeType.ALL)
-    @JsonIgnore 
+    @OneToMany(mappedBy = "utilizador")
+    @JsonIgnore // Importante!
     private List<Despesas> despesas;
 
     public Utilizador() {}
-
     public Utilizador(String nome, String email) {
         this.nome = nome;
         this.email = email;
