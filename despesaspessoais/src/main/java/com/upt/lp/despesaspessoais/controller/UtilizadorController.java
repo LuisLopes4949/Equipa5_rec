@@ -17,4 +17,11 @@ public class UtilizadorController {
 
     @PostMapping
     public Utilizador criar(@RequestBody Utilizador u) { return service.criar(u); }
+
+ // Em UtilizadorController.java
+    @PostMapping("/login")
+    public Utilizador login(@RequestBody Utilizador credenciais) {
+        // Usamos o objeto Utilizador para transportar email e pass
+        return service.autenticar(credenciais.getEmail(), credenciais.getPassword());
+    }
 }
