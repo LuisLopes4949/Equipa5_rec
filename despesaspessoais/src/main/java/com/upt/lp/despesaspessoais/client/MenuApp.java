@@ -31,11 +31,11 @@ public class MenuApp {
     // --- MENUS ---
 
     static void menuVisitante() {
-        System.out.println("\n=== GESTAO DE DESPESAS ===");
+        System.out.println("\n=== GESTÃO DE DESPESAS ===");
         System.out.println("1. Login");
         System.out.println("2. Registar Conta");
         System.out.println("0. Sair");
-        System.out.print("Opcao: ");
+        System.out.print("Opção: ");
 
         String opcao = scanner.nextLine();
         switch (opcao) {
@@ -45,7 +45,7 @@ public class MenuApp {
                 System.out.println("A encerrar sistema...");
                 System.exit(0);
             }
-            default -> System.out.println("Opcao invalida.");
+            default -> System.out.println("Opção inválida.");
         }
     }
 
@@ -56,7 +56,7 @@ public class MenuApp {
         System.out.println("3. Listar Categorias");
         System.out.println("4. Criar Nova Categoria");
         System.out.println("9. Logout");
-        System.out.print("Opcao: ");
+        System.out.print("Opção: ");
 
         String opcao = scanner.nextLine();
         switch (opcao) {
@@ -72,7 +72,7 @@ public class MenuApp {
         }
     }
 
-    // --- ACOES DE AUTENTICACAO ---
+    // --- AÇÕES DE AUTENTICAÇÃO ---
 
     static void fazerLogin() {
         System.out.print("Email: ");
@@ -90,15 +90,10 @@ public class MenuApp {
             System.out.println("Login efetuado.");
 
         } catch (ResourceAccessException e) {
-            // ERRO DE CONEXÃO REAL (Cabo desligado / Servidor Off)
-            System.out.println("O servidor esta desligado! Verifica se o backend esta a correr.");
-
+            System.out.println("O servidor está desligado!");
         } catch (RestClientResponseException e) {
-            // ERRO DE LÓGICA (Servidor respondeu, mas deu erro 400/404/500 porque o email não existe ou pass errada)
-            System.out.println("Email nao existe ou Password incorreta.");
-
+            System.out.println("Email não existe ou Password incorreta.");
         } catch (Exception e) {
-            // Outros erros inesperados
             System.out.println("Ocorreu um erro inesperado: " + e.getMessage());
         }
     }
@@ -116,7 +111,7 @@ public class MenuApp {
             api.postForObject(BASE_URL + "/utilizadores", novo, Utilizador.class);
             System.out.println("Conta criada. Podes fazer login.");
         } catch (Exception e) {
-            System.out.println("Nao foi possivel criar conta. Email ja existe?");
+            System.out.println("Não foi possível criar conta. Email já existe?");
         }
     }
 
@@ -127,11 +122,11 @@ public class MenuApp {
             String url = BASE_URL + "/despesas/user/" + utilizadorLogado.getId();
             Despesas[] lista = api.getForObject(url, Despesas[].class);
 
-            System.out.println("\n--- HISTORICO DE DESPESAS ---");
+            System.out.println("\n--- HISTÓRICO DE DESPESAS ---");
             if (lista == null || lista.length == 0) {
                 System.out.println("Sem registos encontrados.");
             } else {
-                System.out.printf("%-12s | %-10s | %-15s | %s%n", "DATA", "VALOR", "CATEGORIA", "DESCRICAO");
+                System.out.printf("%-12s | %-10s | %-15s | %s%n", "DATA", "VALOR", "CATEGORIA", "DESCRIÇÃO");
                 System.out.println("----------------------------------------------------------");
                 for (Despesas d : lista) {
                     String catNome = (d.getCategoria() != null) ? d.getCategoria().getNome() : "N/A";
@@ -146,7 +141,9 @@ public class MenuApp {
 
     static void listarCategorias() {
         try {
-            Categoria[] cats = api.getForObject(BASE_URL + "/categorias", Categoria[].class);
+            String url = BASE_URL + "/categorias?userId=" + utilizadorLogado.getId();
+            
+            Categoria[] cats = api.getForObject(url, Categoria[].class);
             System.out.println("\n--- LISTA DE CATEGORIAS ---");
             System.out.println("ID | NOME");
             System.out.println("---+----------------");
@@ -164,7 +161,7 @@ public class MenuApp {
         System.out.println("\n--- NOVA DESPESA ---");
         
         try {
-            System.out.print("Descricao: ");
+            System.out.print("Descrição: ");
             String desc = scanner.nextLine();
 
             System.out.print("Valor (ex: 12.50): ");
@@ -175,7 +172,7 @@ public class MenuApp {
             String dataStr = scanner.nextLine();
             LocalDate data = dataStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dataStr);
 
-            System.out.print("ID da Categoria (Opcao 3 para ver lista): ");
+            System.out.print("ID da Categoria (Opção 3 para ver lista): ");
             Long catId = Long.parseLong(scanner.nextLine());
 
             Despesas nova = new Despesas();
@@ -189,11 +186,11 @@ public class MenuApp {
             System.out.println("Despesa registada.");
 
         } catch (NumberFormatException e) {
-            System.out.println("O valor ou ID tem de ser numerico.");
+            System.out.println("O valor ou ID tem de ser numérico.");
         } catch (DateTimeParseException e) {
-            System.out.println("Formato de data invalido. Use AAAA-MM-DD.");
+            System.out.println("Formato de data inválido. Use AAAA-MM-DD.");
         } catch (Exception e) {
-            System.out.println("Nao foi possivel guardar a despesa: " + e.getMessage());
+            System.out.println("Não foi possível guardar a despesa.");
         }
     }
 
@@ -203,7 +200,7 @@ public class MenuApp {
         String nome = scanner.nextLine();
 
         if (nome.trim().isEmpty()) {
-            System.out.println("O nome nao pode estar vazio.");
+            System.out.println("O nome não pode estar vazio.");
             return;
         }
 
@@ -213,8 +210,10 @@ public class MenuApp {
         nova.setCorHex("#000000"); 
 
         try {
-            api.postForObject(BASE_URL + "/categorias", nova, Categoria.class);
-            System.out.println("Categoria '" + nome + "' criada.");
+            String url = BASE_URL + "/categorias?userId=" + utilizadorLogado.getId();
+            
+            api.postForObject(url, nova, Categoria.class);
+            System.out.println("Categoria '" + nome + "' criada (Privada).");
         } catch (Exception e) {
             System.out.println("Falha ao criar categoria.");
         }
