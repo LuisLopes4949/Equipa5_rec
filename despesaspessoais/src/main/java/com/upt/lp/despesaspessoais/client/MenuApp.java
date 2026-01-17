@@ -52,12 +52,11 @@ public class MenuApp {
 
     static void menuPrincipal() {
         System.out.println("\n=== BEM-VINDO, " + utilizadorLogado.getNome().toUpperCase() + " ===");
-        System.out.println("1. Consultar Despesas");
+        System.out.println("1. Consultar Todas as Despesas");
         System.out.println("2. Registar Nova Despesa");
-        System.out.println("3. Listar Categorias");
-        System.out.println("4. Criar Nova Categoria");
-        System.out.println("5. Eliminar Categoria");
-        System.out.println("6. Eliminar Despesa");
+        System.out.println("3. Menu de Categorias (Listar/Criar/Apagar)");
+        System.out.println("4. Pesquisar Despesas (Filtros)"); // <--- NOVO
+        System.out.println("5. Eliminar Despesa");
         System.out.println("9. Logout");
         System.out.print("Opção: ");
 
@@ -65,14 +64,50 @@ public class MenuApp {
         switch (opcao) {
             case "1" -> listarMinhasDespesas();
             case "2" -> criarNovaDespesa();
-            case "3" -> listarCategorias();
-            case "4" -> criarCategoria();
-            case "5" -> eliminarCategoria();
-            case "6" -> eliminarDespesa();
+            case "3" -> menuCategorias(); // Organizei as categorias num sub-menu
+            case "4" -> menuFiltros();    // <--- NOVO MENU
+            case "5" -> eliminarDespesa();
             case "9" -> {
                 utilizadorLogado = null;
                 System.out.println("Sessão terminada.");
             }
+            default -> System.out.println("Opção inválida.");
+        }
+    }
+
+    static void menuCategorias() {
+        System.out.println("\n--- GESTÃO DE CATEGORIAS ---");
+        System.out.println("1. Listar Categorias");
+        System.out.println("2. Criar Nova Categoria");
+        System.out.println("3. Eliminar Categoria");
+        System.out.println("0. Voltar");
+        System.out.print("Opção: ");
+
+        String op = scanner.nextLine();
+        switch (op) {
+            case "1" -> listarCategorias();
+            case "2" -> criarCategoria();
+            case "3" -> eliminarCategoria();
+            case "0" -> {} 
+            default -> System.out.println("Opção inválida.");
+        }
+    }
+
+    // --- NOVO MENU DE FILTROS ---
+    static void menuFiltros() {
+        System.out.println("\n--- PESQUISAR DESPESAS ---");
+        System.out.println("1. Por Ano");
+        System.out.println("2. Por Categoria");
+        System.out.println("3. Por Intervalo de Valor (Min/Max)");
+        System.out.println("0. Voltar");
+        System.out.print("Opção: ");
+
+        String op = scanner.nextLine();
+        switch (op) {
+            case "1" -> filtrarPorAno();
+            case "2" -> filtrarPorCategoria();
+            case "3" -> filtrarPorValor();
+            case "0" -> {}
             default -> System.out.println("Opção inválida.");
         }
     }
@@ -119,28 +154,80 @@ public class MenuApp {
         }
     }
 
-    // --- FUNCIONALIDADES ---
+    // --- FUNCIONALIDADES E FILTROS ---
 
     static void listarMinhasDespesas() {
         try {
             String url = BASE_URL + "/despesas/user/" + utilizadorLogado.getId();
             Despesas[] lista = api.getForObject(url, Despesas[].class);
-
-            System.out.println("\n--- HISTÓRICO DE DESPESAS ---");
-            if (lista == null || lista.length == 0) {
-                System.out.println("Sem registos encontrados.");
-            } else {
-                System.out.printf("%-4s | %-12s | %-10s | %-15s | %s%n", "ID", "DATA", "VALOR", "CATEGORIA", "DESCRIÇÃO");
-                System.out.println("-----+--------------+------------+-----------------+----------------");
-                for (Despesas d : lista) {
-                    String catNome = (d.getCategoria() != null) ? d.getCategoria().getNome() : "N/A";
-                    System.out.printf("%-4d | %s | %6.2f Eur | %-15s | %s%n", 
-                        d.getId(), d.getData(), d.getValor(), catNome, d.getDescricao());
-                }
-            }
+            mostrarTabela(lista); // Usa o método auxiliar
         } catch (Exception e) {
             System.out.println("Falha ao obter a lista de despesas.");
         }
+    }
+
+    static void filtrarPorAno() {
+        try {
+            System.out.print("Qual o ano (ex: 2025): ");
+            int ano = Integer.parseInt(scanner.nextLine());
+            
+            String url = BASE_URL + "/despesas/filtro/ano?userId=" + utilizadorLogado.getId() + "&ano=" + ano;
+            Despesas[] lista = api.getForObject(url, Despesas[].class);
+            mostrarTabela(lista);
+
+        } catch (Exception e) {
+            System.out.println("Erro ao filtrar por ano.");
+        }
+    }
+
+    static void filtrarPorCategoria() {
+        try {
+            listarCategorias(); // Mostra a lista para ajudar
+            System.out.print("ID da Categoria a pesquisar: ");
+            Long catId = Long.parseLong(scanner.nextLine());
+
+            String url = BASE_URL + "/despesas/filtro/categoria?userId=" + utilizadorLogado.getId() + "&catId=" + catId;
+            Despesas[] lista = api.getForObject(url, Despesas[].class);
+            mostrarTabela(lista);
+
+        } catch (Exception e) {
+            System.out.println("Erro ao filtrar por categoria.");
+        }
+    }
+
+    static void filtrarPorValor() {
+        try {
+            System.out.print("Valor Mínimo: ");
+            Double min = Double.parseDouble(scanner.nextLine().replace(",", "."));
+            System.out.print("Valor Máximo: ");
+            Double max = Double.parseDouble(scanner.nextLine().replace(",", "."));
+
+            String url = BASE_URL + "/despesas/filtro/valor?userId=" + utilizadorLogado.getId() + "&min=" + min + "&max=" + max;
+            Despesas[] lista = api.getForObject(url, Despesas[].class);
+            mostrarTabela(lista);
+
+        } catch (Exception e) {
+            System.out.println("Erro ao filtrar por valor.");
+        }
+    }
+
+    // --- MÉTODOS AUXILIARES ---
+
+    // Método novo para não repetir o System.out.printf 4 vezes
+    static void mostrarTabela(Despesas[] lista) {
+        System.out.println("\n--- RESULTADOS ---");
+        if (lista == null || lista.length == 0) {
+            System.out.println("Nenhuma despesa encontrada.");
+        } else {
+            System.out.printf("%-4s | %-12s | %-10s | %-15s | %s%n", "ID", "DATA", "VALOR", "CATEGORIA", "DESCRIÇÃO");
+            System.out.println("-----+--------------+------------+-----------------+----------------");
+            for (Despesas d : lista) {
+                String catNome = (d.getCategoria() != null) ? d.getCategoria().getNome() : "N/A";
+                System.out.printf("%-4d | %s | %6.2f Eur | %-15s | %s%n", 
+                    d.getId(), d.getData(), d.getValor(), catNome, d.getDescricao());
+            }
+        }
+        System.out.println("--------------------------------------------------------------------");
     }
 
     static void listarCategorias() {
@@ -170,7 +257,7 @@ public class MenuApp {
             System.out.print("Data (AAAA-MM-DD) [Enter para hoje]: ");
             String dataStr = scanner.nextLine();
             LocalDate data = dataStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dataStr);
-            System.out.print("ID da Categoria (Opção 3 para ver lista): ");
+            System.out.print("ID da Categoria (Ver menu categorias se não souber): ");
             Long catId = Long.parseLong(scanner.nextLine());
 
             Despesas nova = new Despesas();
@@ -225,15 +312,13 @@ public class MenuApp {
 
     static void eliminarDespesa() {
         System.out.println("\n--- ELIMINAR DESPESA ---");
-        listarMinhasDespesas();
+        listarMinhasDespesas(); // Reusa a listagem padrão
         
         System.out.print("Digite o ID da despesa a eliminar: ");
         try {
             Long id = Long.parseLong(scanner.nextLine());
-
             String url = BASE_URL + "/despesas/" + id + "?userId=" + utilizadorLogado.getId();
             api.delete(url);
-            
             System.out.println("Despesa eliminada com sucesso.");
 
         } catch (NumberFormatException e) {
