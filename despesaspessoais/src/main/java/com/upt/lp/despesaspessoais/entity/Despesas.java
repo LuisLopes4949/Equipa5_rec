@@ -18,6 +18,8 @@ public class Despesas {
 
     @Enumerated(EnumType.STRING)
     private MetodoPagamento metodoPagamento;
+    // --- SOFT DELETE ---
+    private boolean ativa = true; // Nasce sempre ativa
 
     @Enumerated(EnumType.STRING)
     private TipoMovimento tipo; // NOVO: Define se é GANHO ou GASTO
@@ -57,4 +59,6 @@ public class Despesas {
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public Utilizador getUtilizador() { return utilizador; }
     public void setUtilizador(Utilizador utilizador) { this.utilizador = utilizador; }
+    public boolean isAtiva() { return ativa; }
+    public void setAtiva(boolean ativa) { this.ativa = ativa; }
 }

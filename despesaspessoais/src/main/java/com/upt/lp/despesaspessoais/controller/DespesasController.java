@@ -61,4 +61,9 @@ public class DespesasController {
     public Map<String, Double> getEstatisticas(@RequestParam Long userId) {
         return service.getTotaisPorCategoria(userId);
     }
+
+    @DeleteMapping("/{id}")
+    public void eliminar(@PathVariable Long id, @RequestParam Long userId) {
+        service.eliminarDespesa(id, userId);
+    }
 }

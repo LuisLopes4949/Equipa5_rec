@@ -3,6 +3,7 @@ package com.upt.lp.despesaspessoais.client;
 import com.upt.lp.despesaspessoais.entity.Categoria;
 import com.upt.lp.despesaspessoais.entity.Despesas;
 import com.upt.lp.despesaspessoais.entity.Utilizador;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -42,7 +43,7 @@ public class MenuApp {
             case "1" -> fazerLogin();
             case "2" -> registarConta();
             case "0" -> {
-                System.out.println("A encerrar sistema...");
+                System.out.println("A encerrar o sistema...");
                 System.exit(0);
             }
             default -> System.out.println("Opção inválida.");
@@ -55,7 +56,8 @@ public class MenuApp {
         System.out.println("2. Registar Nova Despesa");
         System.out.println("3. Listar Categorias");
         System.out.println("4. Criar Nova Categoria");
-        System.out.println("5. Eliminar Categoria"); // <--- NOVA OPÇÃO
+        System.out.println("5. Eliminar Categoria");
+        System.out.println("6. Eliminar Despesa");
         System.out.println("9. Logout");
         System.out.print("Opção: ");
 
@@ -65,7 +67,8 @@ public class MenuApp {
             case "2" -> criarNovaDespesa();
             case "3" -> listarCategorias();
             case "4" -> criarCategoria();
-            case "5" -> eliminarCategoria(); // <--- NOVA AÇÃO
+            case "5" -> eliminarCategoria();
+            case "6" -> eliminarDespesa();
             case "9" -> {
                 utilizadorLogado = null;
                 System.out.println("Sessão terminada.");
@@ -89,9 +92,9 @@ public class MenuApp {
         try {
             Utilizador user = api.postForObject(BASE_URL + "/utilizadores/login", loginData, Utilizador.class);
             utilizadorLogado = user;
-            System.out.println("Login efetuado.");
+            System.out.println("Login efetuado com sucesso.");
         } catch (ResourceAccessException e) {
-            System.out.println("O servidor está desligado!");
+            System.out.println("O servidor está desligado! Verifique a conexão.");
         } catch (RestClientResponseException e) {
             System.out.println("Email não existe ou Password incorreta.");
         } catch (Exception e) {
@@ -110,9 +113,9 @@ public class MenuApp {
         Utilizador novo = new Utilizador(nome, email, pass);
         try {
             api.postForObject(BASE_URL + "/utilizadores", novo, Utilizador.class);
-            System.out.println("Conta criada. Podes fazer login.");
+            System.out.println("Conta criada com sucesso. Pode fazer login.");
         } catch (Exception e) {
-            System.out.println("Não foi possível criar conta. Email já existe?");
+            System.out.println("Não foi possível criar a conta. O email já existe?");
         }
     }
 
@@ -127,23 +130,22 @@ public class MenuApp {
             if (lista == null || lista.length == 0) {
                 System.out.println("Sem registos encontrados.");
             } else {
-                System.out.printf("%-12s | %-10s | %-15s | %s%n", "DATA", "VALOR", "CATEGORIA", "DESCRIÇÃO");
-                System.out.println("----------------------------------------------------------");
+                System.out.printf("%-4s | %-12s | %-10s | %-15s | %s%n", "ID", "DATA", "VALOR", "CATEGORIA", "DESCRIÇÃO");
+                System.out.println("-----+--------------+------------+-----------------+----------------");
                 for (Despesas d : lista) {
                     String catNome = (d.getCategoria() != null) ? d.getCategoria().getNome() : "N/A";
-                    System.out.printf("%s | %6.2f Eur | %-15s | %s%n", 
-                        d.getData(), d.getValor(), catNome, d.getDescricao());
+                    System.out.printf("%-4d | %s | %6.2f Eur | %-15s | %s%n", 
+                        d.getId(), d.getData(), d.getValor(), catNome, d.getDescricao());
                 }
             }
         } catch (Exception e) {
-            System.out.println("Falha ao obter lista de despesas.");
+            System.out.println("Falha ao obter a lista de despesas.");
         }
     }
 
     static void listarCategorias() {
         try {
             String url = BASE_URL + "/categorias?userId=" + utilizadorLogado.getId();
-            
             Categoria[] cats = api.getForObject(url, Categoria[].class);
             System.out.println("\n--- LISTA DE CATEGORIAS ---");
             System.out.println("ID | NOME");
@@ -154,25 +156,20 @@ public class MenuApp {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Falha ao obter categorias.");
+            System.out.println("Falha ao obter as categorias.");
         }
     }
 
     static void criarNovaDespesa() {
         System.out.println("\n--- NOVA DESPESA ---");
-        
         try {
             System.out.print("Descrição: ");
             String desc = scanner.nextLine();
-
-            System.out.print("Valor (ex: 12.50): ");
-            String valorStr = scanner.nextLine().replace(",", ".");
-            Double valor = Double.parseDouble(valorStr);
-
+            System.out.print("Valor (ex: 12,50): ");
+            Double valor = Double.parseDouble(scanner.nextLine().replace(",", "."));
             System.out.print("Data (AAAA-MM-DD) [Enter para hoje]: ");
             String dataStr = scanner.nextLine();
             LocalDate data = dataStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dataStr);
-
             System.out.print("ID da Categoria (Opção 3 para ver lista): ");
             Long catId = Long.parseLong(scanner.nextLine());
 
@@ -182,28 +179,19 @@ public class MenuApp {
             nova.setData(data);
 
             String url = BASE_URL + "/despesas?userId=" + utilizadorLogado.getId() + "&catId=" + catId;
-            
             api.postForObject(url, nova, Despesas.class);
-            System.out.println("Despesa registada.");
+            System.out.println("Despesa registada com sucesso.");
 
-        } catch (NumberFormatException e) {
-            System.out.println("O valor ou ID tem de ser numérico.");
-        } catch (DateTimeParseException e) {
-            System.out.println("Formato de data inválido. Use AAAA-MM-DD.");
         } catch (Exception e) {
-            System.out.println("Não foi possível guardar a despesa.");
+            System.out.println("Erro ao registar a despesa. Verifique os dados inseridos.");
         }
     }
 
     static void criarCategoria() {
         System.out.println("\n--- NOVA CATEGORIA ---");
-        System.out.print("Nome da Categoria: ");
+        System.out.print("Nome: ");
         String nome = scanner.nextLine();
-
-        if (nome.trim().isEmpty()) {
-            System.out.println("O nome não pode estar vazio.");
-            return;
-        }
+        if (nome.trim().isEmpty()) { System.out.println("O nome não pode estar vazio!"); return; }
 
         Categoria nova = new Categoria();
         nova.setNome(nome);
@@ -213,32 +201,47 @@ public class MenuApp {
         try {
             String url = BASE_URL + "/categorias?userId=" + utilizadorLogado.getId();
             api.postForObject(url, nova, Categoria.class);
-            System.out.println("Categoria '" + nome + "' criada (Privada).");
+            System.out.println("Categoria criada com sucesso.");
         } catch (Exception e) {
-            System.out.println("Falha ao criar categoria.");
+            System.out.println("Erro ao criar a categoria.");
         }
     }
 
-    // --- NOVO MÉTODO PARA ELIMINAR CATEGORIA ---
     static void eliminarCategoria() {
         System.out.println("\n--- ELIMINAR CATEGORIA ---");
-        // Mostra a lista primeiro para ele saber o ID
         listarCategorias();
-        
         System.out.print("Digite o ID da categoria a eliminar: ");
         try {
             Long id = Long.parseLong(scanner.nextLine());
-
-            // Envia o DELETE para a API com o ID do user para validar permissão
             String url = BASE_URL + "/categorias/" + id + "?userId=" + utilizadorLogado.getId();
-            
             api.delete(url);
             System.out.println("Categoria eliminada com sucesso.");
+        } catch (HttpClientErrorException e) {
+            System.out.println("Erro do Servidor: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            System.out.println("Erro ao eliminar a categoria.");
+        }
+    }
+
+    static void eliminarDespesa() {
+        System.out.println("\n--- ELIMINAR DESPESA ---");
+        listarMinhasDespesas();
+        
+        System.out.print("Digite o ID da despesa a eliminar: ");
+        try {
+            Long id = Long.parseLong(scanner.nextLine());
+
+            String url = BASE_URL + "/despesas/" + id + "?userId=" + utilizadorLogado.getId();
+            api.delete(url);
+            
+            System.out.println("Despesa eliminada com sucesso.");
 
         } catch (NumberFormatException e) {
             System.out.println("ID inválido.");
+        } catch (HttpClientErrorException e) {
+            System.out.println("Erro do Servidor: " + e.getResponseBodyAsString()); 
         } catch (Exception e) {
-            System.out.println("Erro ao eliminar: Verifique se a categoria é sua (não pode apagar categorias globais).");
+            System.out.println("Erro ao eliminar a despesa.");
         }
     }
 }

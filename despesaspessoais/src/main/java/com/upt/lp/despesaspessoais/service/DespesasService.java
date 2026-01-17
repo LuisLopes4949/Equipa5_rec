@@ -5,7 +5,6 @@ import com.upt.lp.despesaspessoais.entity.Utilizador;
 import com.upt.lp.despesaspessoais.entity.Categoria;
 import com.upt.lp.despesaspessoais.repository.DespesasRepository;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +22,15 @@ public class DespesasService {
         this.categoriaService = cService;
     }
 
+    // Listar (Só as ativas)
     public List<Despesas> listarPorUtilizador(Long userId) {
-        return repository.findByUtilizadorId(userId);
+        return repository.findByUtilizadorIdAndAtivaTrue(userId);
     }
 
     public Despesas criarDespesa(Despesas despesa, Long userId, Long catId) {
-        // Validação: Valor positivo 
         if (despesa.getValor() == null || despesa.getValor() <= 0) {
             throw new IllegalArgumentException("O valor deve ser numérico positivo.");
         }
-        // Validação: Campos obrigatórios [cite: 2403]
         if (despesa.getData() == null) {
             throw new IllegalArgumentException("A data é obrigatória.");
         }
@@ -41,22 +39,20 @@ public class DespesasService {
         Categoria c = categoriaService.buscarPorId(catId);
         despesa.setUtilizador(u);
         despesa.setCategoria(c);
+        despesa.setAtiva(true); // Garante que nasce ativa
 
         return repository.save(despesa);
     }
 
-    // --- NOVO: Editar Despesa [cite: 2414] ---
     public Despesas editarDespesa(Long id, Despesas dadosNovos, Long catId) {
         Despesas existente = repository.findById(id)
             .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
 
-        // Atualizar campos 
         existente.setDescricao(dadosNovos.getDescricao());
         existente.setValor(dadosNovos.getValor());
         existente.setData(dadosNovos.getData());
         existente.setMetodoPagamento(dadosNovos.getMetodoPagamento());
 
-        // Atualizar categoria se necessário
         if (catId != null) {
             Categoria c = categoriaService.buscarPorId(catId);
             existente.setCategoria(c);
@@ -65,32 +61,47 @@ public class DespesasService {
         return repository.save(existente);
     }
     
-    // --- NOVO: Filtros --- 
+    // --- FILTROS CORRIGIDOS (Adicionei ...AndAtivaTrue) ---
     
     public List<Despesas> filtrarPorAno(Long userId, int ano) {
         LocalDate inicio = LocalDate.of(ano, 1, 1);
         LocalDate fim = LocalDate.of(ano, 12, 31);
-        return repository.findByUtilizadorIdAndDataBetween(userId, inicio, fim);
+        // Correção aqui:
+        return repository.findByUtilizadorIdAndDataBetweenAndAtivaTrue(userId, inicio, fim);
     }
 
     public List<Despesas> filtrarPorCategoria(Long userId, Long catId) {
-        return repository.findByUtilizadorIdAndCategoriaId(userId, catId);
+        // Correção aqui:
+        return repository.findByUtilizadorIdAndCategoriaIdAndAtivaTrue(userId, catId);
     }
     
     public List<Despesas> filtrarPorValor(Long userId, Double min, Double max) {
-        return repository.findByUtilizadorIdAndValorBetween(userId, min, max);
+        // Correção aqui:
+        return repository.findByUtilizadorIdAndValorBetweenAndAtivaTrue(userId, min, max);
     }
 
-    // --- NOVO: Estatísticas --- 
-    // Retorna um Mapa: "Transporte" -> 150.0, "Alimentação" -> 200.0
+    // --- ESTATÍSTICAS ---
+
     public Map<String, Double> getTotaisPorCategoria(Long userId) {
         List<Object[]> resultados = repository.somarDespesasPorCategoria(userId);
-        
-        // Converte a lista do banco num Mapa fácil de ler
-        return resultados.stream()
-            .collect(Collectors.toMap(
-                obj -> (String) obj[0], // Nome da Categoria
-                obj -> (Double) obj[1]  // Total Gasto
-            ));
+        return resultados.stream().collect(Collectors.toMap(o -> (String) o[0], o -> (Double) o[1]));
+    }
+    
+    public Map<Integer, Double> getTotaisPorMes(Long userId) {
+        List<Object[]> resultados = repository.somarDespesasPorMes(userId);
+        return resultados.stream().collect(Collectors.toMap(o -> (Integer) o[0], o -> (Double) o[1]));
+    }
+
+    // --- ELIMINAR (Soft Delete) ---
+    public void eliminarDespesa(Long id, Long userId) {
+        Despesas d = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
+
+        if (!d.getUtilizador().getId().equals(userId)) {
+            throw new RuntimeException("Esta despesa não te pertence.");
+        }
+
+        d.setAtiva(false); // Marca como apagada
+        repository.save(d);
     }
 }
