@@ -55,6 +55,7 @@ public class MenuApp {
         System.out.println("2. Registar Nova Despesa");
         System.out.println("3. Listar Categorias");
         System.out.println("4. Criar Nova Categoria");
+        System.out.println("5. Eliminar Categoria"); // <--- NOVA OPÇÃO
         System.out.println("9. Logout");
         System.out.print("Opção: ");
 
@@ -64,6 +65,7 @@ public class MenuApp {
             case "2" -> criarNovaDespesa();
             case "3" -> listarCategorias();
             case "4" -> criarCategoria();
+            case "5" -> eliminarCategoria(); // <--- NOVA AÇÃO
             case "9" -> {
                 utilizadorLogado = null;
                 System.out.println("Sessão terminada.");
@@ -88,7 +90,6 @@ public class MenuApp {
             Utilizador user = api.postForObject(BASE_URL + "/utilizadores/login", loginData, Utilizador.class);
             utilizadorLogado = user;
             System.out.println("Login efetuado.");
-
         } catch (ResourceAccessException e) {
             System.out.println("O servidor está desligado!");
         } catch (RestClientResponseException e) {
@@ -211,11 +212,33 @@ public class MenuApp {
 
         try {
             String url = BASE_URL + "/categorias?userId=" + utilizadorLogado.getId();
-            
             api.postForObject(url, nova, Categoria.class);
             System.out.println("Categoria '" + nome + "' criada (Privada).");
         } catch (Exception e) {
             System.out.println("Falha ao criar categoria.");
+        }
+    }
+
+    // --- NOVO MÉTODO PARA ELIMINAR CATEGORIA ---
+    static void eliminarCategoria() {
+        System.out.println("\n--- ELIMINAR CATEGORIA ---");
+        // Mostra a lista primeiro para ele saber o ID
+        listarCategorias();
+        
+        System.out.print("Digite o ID da categoria a eliminar: ");
+        try {
+            Long id = Long.parseLong(scanner.nextLine());
+
+            // Envia o DELETE para a API com o ID do user para validar permissão
+            String url = BASE_URL + "/categorias/" + id + "?userId=" + utilizadorLogado.getId();
+            
+            api.delete(url);
+            System.out.println("Categoria eliminada com sucesso.");
+
+        } catch (NumberFormatException e) {
+            System.out.println("ID inválido.");
+        } catch (Exception e) {
+            System.out.println("Erro ao eliminar: Verifique se a categoria é sua (não pode apagar categorias globais).");
         }
     }
 }

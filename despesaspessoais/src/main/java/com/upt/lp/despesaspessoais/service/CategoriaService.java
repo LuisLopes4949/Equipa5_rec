@@ -20,7 +20,6 @@ public class CategoriaService {
         return repository.findAll();
     }
 
-    // Método que usa a Query especial
     public List<Categoria> listarPorUtilizador(Long userId) {
         return repository.findByUtilizadorIdOrGlobal(userId);
     }
@@ -30,12 +29,29 @@ public class CategoriaService {
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
     }
 
-    // Ao criar, associamos o Utilizador
     public Categoria criar(Categoria categoria, Long userId) {
         if (userId != null) {
             Utilizador u = utilizadorService.buscarPorId(userId);
             categoria.setUtilizador(u); 
         }
+        categoria.setAtiva(true); // Garante que nasce ativa
         return repository.save(categoria);
+    }
+
+    // --- NOVO MÉTODO: SOFT DELETE ---
+    public void eliminar(Long id, Long userId) {
+        Categoria c = buscarPorId(id);
+
+        // Segurança: Só podes apagar as tuas categorias. Não podes apagar as globais nem as de outros.
+        if (c.getUtilizador() == null) {
+            throw new RuntimeException("Não podes apagar categorias globais do sistema.");
+        }
+        if (!c.getUtilizador().getId().equals(userId)) {
+            throw new RuntimeException("Esta categoria não te pertence.");
+        }
+
+        // Soft Delete: Em vez de delete(), fazemos update para false
+        c.setAtiva(false);
+        repository.save(c);
     }
 }

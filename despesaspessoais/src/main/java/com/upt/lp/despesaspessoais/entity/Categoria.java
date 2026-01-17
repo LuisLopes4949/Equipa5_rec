@@ -13,13 +13,15 @@ public class Categoria {
     private String nome;
     private String nomeIcone; 
     private String corHex;
+    
+    // --- NOVO CAMPO: SOFT DELETE ---
+    // true = visível, false = eliminada
+    private boolean ativa = true; 
 
     @OneToMany(mappedBy = "categoria")
     @JsonIgnore
     private List<Despesas> despesas;
 
-    // --- NOVO: A QUEM PERTENCE A CATEGORIA ---
-    // Se for NULL, a categoria é pública (todos veem)
     @ManyToOne
     @JoinColumn(name = "utilizador_id")
     private Utilizador utilizador; 
@@ -39,10 +41,12 @@ public class Categoria {
     public String getCorHex() { return corHex; }
     public void setCorHex(String corHex) { this.corHex = corHex; }
     
+    public boolean isAtiva() { return ativa; }
+    public void setAtiva(boolean ativa) { this.ativa = ativa; }
+
     public List<Despesas> getDespesas() { return despesas; }
     public void setDespesas(List<Despesas> despesas) { this.despesas = despesas; }
     
-    // Getters/Setters do Utilizador
     public Utilizador getUtilizador() { return utilizador; }
     public void setUtilizador(Utilizador utilizador) { this.utilizador = utilizador; }
 }
