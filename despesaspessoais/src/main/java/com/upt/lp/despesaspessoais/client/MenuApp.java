@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class MenuApp {
 
@@ -55,7 +56,7 @@ public class MenuApp {
         System.out.println("1. Consultar Todas as Despesas");
         System.out.println("2. Registar Nova Despesa");
         System.out.println("3. Menu de Categorias (Listar/Criar/Apagar)");
-        System.out.println("4. Pesquisar Despesas (Filtros)"); // <--- NOVO
+        System.out.println("4. Pesquisar Despesas (Filtros)");
         System.out.println("5. Eliminar Despesa");
         System.out.println("9. Logout");
         System.out.print("Opção: ");
@@ -64,8 +65,8 @@ public class MenuApp {
         switch (opcao) {
             case "1" -> listarMinhasDespesas();
             case "2" -> criarNovaDespesa();
-            case "3" -> menuCategorias(); // Organizei as categorias num sub-menu
-            case "4" -> menuFiltros();    // <--- NOVO MENU
+            case "3" -> menuCategorias();
+            case "4" -> menuFiltros();
             case "5" -> eliminarDespesa();
             case "9" -> {
                 utilizadorLogado = null;
@@ -93,7 +94,6 @@ public class MenuApp {
         }
     }
 
-    // --- NOVO MENU DE FILTROS ---
     static void menuFiltros() {
         System.out.println("\n--- PESQUISAR DESPESAS ---");
         System.out.println("1. Por Ano");
@@ -138,19 +138,43 @@ public class MenuApp {
     }
 
     static void registarConta() {
+        System.out.println("\n--- CRIAR CONTA ---");
+        
         System.out.print("Nome: ");
         String nome = scanner.nextLine();
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
-        System.out.print("Password: ");
-        String pass = scanner.nextLine();
+        if (nome.trim().isEmpty()) {
+            System.out.println("O nome não pode estar vazio.");
+            return;
+        }
+
+        // Validação de Email
+        String email;
+        while (true) {
+            System.out.print("Email: ");
+            email = scanner.nextLine();
+            if (Pattern.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", email)) {
+                break;
+            }
+            System.out.println("Email inválido! Certifique-se que usa o formato 'exemplo@mail.com'.");
+        }
+
+        // Validação de Password (Mínimo 8 caracteres)
+        String pass;
+        while (true) {
+            System.out.print("Password (min 8 caracteres): ");
+            pass = scanner.nextLine();
+            if (pass.length() >= 8) {
+                break;
+            }
+            System.out.println("Password muito curta! Mínimo de 8 caracteres.");
+        }
 
         Utilizador novo = new Utilizador(nome, email, pass);
         try {
             api.postForObject(BASE_URL + "/utilizadores", novo, Utilizador.class);
             System.out.println("Conta criada com sucesso. Pode fazer login.");
         } catch (Exception e) {
-            System.out.println("Não foi possível criar a conta. O email já existe?");
+            System.out.println("Não foi possível criar a conta. Esse email já existe?");
         }
     }
 
@@ -160,7 +184,7 @@ public class MenuApp {
         try {
             String url = BASE_URL + "/despesas/user/" + utilizadorLogado.getId();
             Despesas[] lista = api.getForObject(url, Despesas[].class);
-            mostrarTabela(lista); // Usa o método auxiliar
+            mostrarTabela(lista); 
         } catch (Exception e) {
             System.out.println("Falha ao obter a lista de despesas.");
         }
@@ -182,7 +206,7 @@ public class MenuApp {
 
     static void filtrarPorCategoria() {
         try {
-            listarCategorias(); // Mostra a lista para ajudar
+            listarCategorias();
             System.out.print("ID da Categoria a pesquisar: ");
             Long catId = Long.parseLong(scanner.nextLine());
 
@@ -211,9 +235,6 @@ public class MenuApp {
         }
     }
 
-    // --- MÉTODOS AUXILIARES ---
-
-    // Método novo para não repetir o System.out.printf 4 vezes
     static void mostrarTabela(Despesas[] lista) {
         System.out.println("\n--- RESULTADOS ---");
         if (lista == null || lista.length == 0) {
@@ -312,7 +333,7 @@ public class MenuApp {
 
     static void eliminarDespesa() {
         System.out.println("\n--- ELIMINAR DESPESA ---");
-        listarMinhasDespesas(); // Reusa a listagem padrão
+        listarMinhasDespesas(); 
         
         System.out.print("Digite o ID da despesa a eliminar: ");
         try {
