@@ -33,7 +33,7 @@ public class MenuApp {
     // --- MENUS ---
 
     static void menuVisitante() {
-        System.out.println("\n=== GESTÃO DE DESPESAS ===");
+        System.out.println("=== GESTÃO DE DESPESAS ===");
         System.out.println("1. Login");
         System.out.println("2. Registar Conta");
         System.out.println("0. Sair");
@@ -115,70 +115,58 @@ public class MenuApp {
     // --- AÇÕES DE AUTENTICAÇÃO ---
 
     static void fazerLogin() {
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
-        System.out.print("Password: ");
-        String password = scanner.nextLine();
-
-        Utilizador loginData = new Utilizador();
-        loginData.setEmail(email);
-        loginData.setPassword(password);
-
         try {
-            Utilizador user = api.postForObject(BASE_URL + "/utilizadores/login", loginData, Utilizador.class);
-            utilizadorLogado = user;
-            System.out.println("Login efetuado com sucesso.");
-        } catch (ResourceAccessException e) {
-            System.out.println("O servidor está desligado! Verifique a conexão.");
-        } catch (RestClientResponseException e) {
-            System.out.println("Email não existe ou Password incorreta.");
+            System.out.print("Email: ");
+            String email = scanner.nextLine();
+
+            System.out.print("Password: ");
+            String password = scanner.nextLine();
+
+            Utilizador u = new Utilizador();
+            u.setEmail(email);
+            u.setPassword(password);
+
+            utilizadorLogado = api.postForObject(BASE_URL + "/utilizadores/login",u,Utilizador.class);
+
+            System.out.println("Login efetuado com sucesso!");
+
         } catch (Exception e) {
-            System.out.println("Ocorreu um erro inesperado: " + e.getMessage());
+            System.out.println("Login inválido.");
         }
     }
 
+
     static void registarConta() {
-        System.out.println("\n--- CRIAR CONTA ---");
-        
+
         System.out.print("Nome: ");
         String nome = scanner.nextLine();
-        if (nome.trim().isEmpty()) {
-            System.out.println("O nome não pode estar vazio.");
+
+        System.out.print("Email: ");
+        String email = scanner.nextLine();
+        // VALIDAÇÃO SIMPLES DO EMAIL (OPÇÃO 1)
+        if (!email.contains("@") || !email.contains(".")) {
+            System.out.println("Email inválido.");
             return;
         }
 
-        // Validação de Email
-        String email;
-        while (true) {
-            System.out.print("Email: ");
-            email = scanner.nextLine();
-            if (Pattern.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", email)) {
-                break;
-            }
-            System.out.println("Email inválido! Certifique-se que usa o formato 'exemplo@mail.com'.");
-        }
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
 
-        // Validação de Password (Mínimo 8 caracteres)
-        String pass;
-        while (true) {
-            System.out.print("Password (min 8 caracteres): ");
-            pass = scanner.nextLine();
-            if (pass.length() >= 8) {
-                break;
-            }
-            System.out.println("Password muito curta! Mínimo de 8 caracteres.");
-        }
-
-        Utilizador novo = new Utilizador(nome, email, pass);
         try {
-            api.postForObject(BASE_URL + "/utilizadores", novo, Utilizador.class);
-            System.out.println("Conta criada com sucesso. Pode fazer login.");
+            Utilizador novo = new Utilizador();
+            novo.setNome(nome);
+            novo.setEmail(email);
+            novo.setPassword(password);
+
+            api.postForObject(BASE_URL + "/utilizadores/registar",novo,Utilizador.class);
+
+            System.out.println("Conta criada com sucesso!");
+
         } catch (Exception e) {
-            System.out.println("Não foi possível criar a conta. Esse email já existe?");
+            System.out.println("Erro ao registar conta.");
         }
     }
 
-    // --- FUNCIONALIDADES E FILTROS ---
 
     static void listarMinhasDespesas() {
         try {
