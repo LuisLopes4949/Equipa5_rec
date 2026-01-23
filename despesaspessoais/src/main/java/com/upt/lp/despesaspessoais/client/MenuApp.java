@@ -338,20 +338,20 @@ public class MenuApp {
         }
     }
 
+
     public static void eliminarDespesa() {
-        try {
-            listarMinhasDespesas();
-            System.out.print("ID da despesa: ");
-            Long id = Long.parseLong(scanner.nextLine());
+    	try {
+    		listarMinhasDespesas();
+    		System.out.print("ID da despesa: ");
+    		Long id = Long.parseLong(scanner.nextLine());
 
-            String url = BASE_URL + "/despesas/" + id + "?userId=" + utilizadorLogado.getId();
-            api.delete(url);
+    		String url = BASE_URL + "/despesas/" + id + "?userId=" + utilizadorLogado.getId();
+    		api.delete(url);
 
-            System.out.println("Despesa eliminada.");
+    		System.out.println("Despesa eliminada.");
 
-        } catch (Exception e) {
-            System.out.println("Erro ao eliminar despesa.");
-        }
+    	} catch (Exception e) {
+    		System.out.println("Erro ao eliminar despesa.");
+    	}
     }
-
 }
