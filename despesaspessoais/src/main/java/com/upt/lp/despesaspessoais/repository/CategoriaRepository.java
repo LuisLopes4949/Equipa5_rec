@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
-    // Só mostra categorias que pertencem ao user (ou globais) E que estão ATIVAS
     @Query("SELECT c FROM Categoria c WHERE (c.utilizador.id = :userId OR c.utilizador IS NULL) AND c.ativa = true")
     List<Categoria> findByUtilizadorIdOrGlobal(@Param("userId") Long userId);
 }

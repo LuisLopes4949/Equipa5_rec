@@ -33,7 +33,6 @@ public class CategoriaController {
         return service.buscarPorId(id);
     }
 
-    // --- NOVO ENDPOINT DE ELIMINAR ---
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable Long id, @RequestParam Long userId) {
         service.eliminar(id, userId);

@@ -22,7 +22,7 @@ public class DespesasService {
         this.categoriaService = cService;
     }
 
-    // Listar (Só as ativas)
+
     public List<Despesas> listarPorUtilizador(Long userId) {
         return repository.findByUtilizadorIdAndAtivaTrue(userId);
     }
@@ -39,7 +39,7 @@ public class DespesasService {
         Categoria c = categoriaService.buscarPorId(catId);
         despesa.setUtilizador(u);
         despesa.setCategoria(c);
-        despesa.setAtiva(true); // Garante que nasce ativa
+        despesa.setAtiva(true); 
 
         return repository.save(despesa);
     }
@@ -61,22 +61,21 @@ public class DespesasService {
         return repository.save(existente);
     }
     
-    // --- FILTROS CORRIGIDOS (Adicionei ...AndAtivaTrue) ---
+
     
     public List<Despesas> filtrarPorAno(Long userId, int ano) {
         LocalDate inicio = LocalDate.of(ano, 1, 1);
         LocalDate fim = LocalDate.of(ano, 12, 31);
-        // Correção aqui:
+       
         return repository.findByUtilizadorIdAndDataBetweenAndAtivaTrue(userId, inicio, fim);
     }
 
     public List<Despesas> filtrarPorCategoria(Long userId, Long catId) {
-        // Correção aqui:
+        
         return repository.findByUtilizadorIdAndCategoriaIdAndAtivaTrue(userId, catId);
     }
     
     public List<Despesas> filtrarPorValor(Long userId, Double min, Double max) {
-        // Correção aqui:
         return repository.findByUtilizadorIdAndValorBetweenAndAtivaTrue(userId, min, max);
     }
 

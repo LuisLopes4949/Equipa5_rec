@@ -14,8 +14,7 @@ public class Categoria {
     private String nomeIcone; 
     private String corHex;
     
-    // --- NOVO CAMPO: SOFT DELETE ---
-    // true = visível, false = eliminada
+
     private boolean ativa = true; 
 
     @OneToMany(mappedBy = "categoria")

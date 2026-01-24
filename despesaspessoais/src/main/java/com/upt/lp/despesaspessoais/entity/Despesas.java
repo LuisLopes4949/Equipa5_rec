@@ -18,11 +18,10 @@ public class Despesas {
 
     @Enumerated(EnumType.STRING)
     private MetodoPagamento metodoPagamento;
-    // --- SOFT DELETE ---
-    private boolean ativa = true; // Nasce sempre ativa
+    private boolean ativa = true; 
 
     @Enumerated(EnumType.STRING)
-    private TipoMovimento tipo; // NOVO: Define se é GANHO ou GASTO
+    private TipoMovimento tipo; 
 
     @ManyToOne
     @JoinColumn(name = "categoria_id")
@@ -42,23 +41,59 @@ public class Despesas {
         this.metodoPagamento = metodo;
     }
 
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-    public Double getValor() { return valor; }
-    public void setValor(Double valor) { this.valor = valor; }
-    public LocalDate getData() { return data; }
-    public void setData(LocalDate data) { this.data = data; }
-    public MetodoPagamento getMetodoPagamento() { return metodoPagamento; }
-    public void setMetodoPagamento(MetodoPagamento metodoPagamento) { this.metodoPagamento = metodoPagamento; }
-    public TipoMovimento getTipo() { return tipo; }
-    public void setTipo(TipoMovimento tipo) { this.tipo = tipo; }
-    public Categoria getCategoria() { return categoria; }
-    public void setCategoria(Categoria categoria) { this.categoria = categoria; }
-    public Utilizador getUtilizador() { return utilizador; }
-    public void setUtilizador(Utilizador utilizador) { this.utilizador = utilizador; }
-    public boolean isAtiva() { return ativa; }
-    public void setAtiva(boolean ativa) { this.ativa = ativa; }
+
+    public Long getId() { 
+    	return id; 
+    	}
+    public void setId(Long id) { 
+    	this.id = id; 
+    	}
+    public String getDescricao() { 
+    	return descricao; 
+    	}
+    public void setDescricao(String descricao) { 
+    	this.descricao = descricao; 
+    	}
+    public Double getValor() { 
+    	return valor; 
+    	}
+    public void setValor(Double valor) { 
+    	this.valor = valor; 
+    	}
+    public LocalDate getData() { 
+    	return data; 
+    	}
+    public void setData(LocalDate data) { 
+    	this.data = data; 
+    	}
+    public MetodoPagamento getMetodoPagamento() { 
+    	return metodoPagamento; 
+    	}
+    public void setMetodoPagamento(MetodoPagamento metodoPagamento) { 
+    	this.metodoPagamento = metodoPagamento; 
+    	}
+    public TipoMovimento getTipo() { 
+    	return tipo; 
+    	}
+    public void setTipo(TipoMovimento tipo) { 
+    	this.tipo = tipo; 
+    	}
+    public Categoria getCategoria() {
+    	return categoria; 
+    	}
+    public void setCategoria(Categoria categoria) { 
+    	this.categoria = categoria; 
+    	}
+    public Utilizador getUtilizador() { 
+    	return utilizador; 
+    	}
+    public void setUtilizador(Utilizador utilizador) { 
+    	this.utilizador = utilizador; 
+    	}
+    public boolean isAtiva() { 
+    	return ativa; 
+    	}
+    public void setAtiva(boolean ativa) { 
+    	this.ativa = ativa; 
+    	}
 }

@@ -2,26 +2,46 @@ package com.upt.lp.despesaspessoais.controller;
 
 import com.upt.lp.despesaspessoais.entity.Utilizador;
 import com.upt.lp.despesaspessoais.service.UtilizadorService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/utilizadores")
 public class UtilizadorController {
-    private final UtilizadorService service;
 
-    public UtilizadorController(UtilizadorService service) { this.service = service; }
+    private final UtilizadorService utilizadorService;
 
-    @GetMapping
-    public List<Utilizador> listar() { return service.listarTodos(); }
+    public UtilizadorController(UtilizadorService utilizadorService) {
+        this.utilizadorService = utilizadorService;
+    }
 
     @PostMapping
-    public Utilizador criar(@RequestBody Utilizador u) { return service.criar(u); }
+    public ResponseEntity<?> criar(@RequestBody Utilizador u) {
+        try {
+            return ResponseEntity.ok(utilizadorService.criar(u));
 
- // Em UtilizadorController.java
+        } catch (IllegalArgumentException e) {
+
+            if (e.getMessage().equals("EMAIL_EXISTENTE")) {
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body("Email já existente");
+            }
+
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/login")
-    public Utilizador login(@RequestBody Utilizador credenciais) {
-        // Usamos o objeto Utilizador para transportar email e pass
-        return service.autenticar(credenciais.getEmail(), credenciais.getPassword());
+    public ResponseEntity<?> login(@RequestBody Utilizador u) {
+        try {
+            return ResponseEntity.ok(
+                    utilizadorService.autenticar(u.getEmail(), u.getPassword())
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        }
     }
 }

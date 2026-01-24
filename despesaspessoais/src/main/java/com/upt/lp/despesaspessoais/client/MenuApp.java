@@ -30,8 +30,6 @@ public class MenuApp {
         }
     }
 
-
-
     public static void menuVisitante() {
         System.out.println("=== GESTÃO DE DESPESAS ===");
         System.out.println("1. Login");
@@ -112,8 +110,6 @@ public class MenuApp {
         }
     }
 
-
-
     public static void fazerLogin() {
         try {
             System.out.print("Email: ");
@@ -135,7 +131,6 @@ public class MenuApp {
         }
     }
 
-
     public static void registarConta() {
 
         System.out.print("Nome: ");
@@ -143,14 +138,21 @@ public class MenuApp {
 
         System.out.print("Email: ");
         String email = scanner.nextLine();
-        
+
         if (!email.contains("@") || !email.contains(".")) {
             System.out.println("Email inválido.");
             return;
         }
 
-        System.out.print("Password: ");
-        String password = scanner.nextLine();
+        String password;
+        while (true) {
+            System.out.print("Password (min 8 caracteres): ");
+            password = scanner.nextLine();
+            if (password.length() >= 8) {
+                break;
+            }
+            System.out.println("Password muito curta!");
+        }
 
         try {
             Utilizador novo = new Utilizador();
@@ -158,15 +160,23 @@ public class MenuApp {
             novo.setEmail(email);
             novo.setPassword(password);
 
-            api.postForObject(BASE_URL + "/utilizadores/registar",novo,Utilizador.class);
+            api.postForObject(BASE_URL + "/utilizadores", novo, Utilizador.class);
 
             System.out.println("Conta criada com sucesso!");
 
+        } catch (HttpClientErrorException.Conflict e) {
+            System.out.println("Email já existente.");
+
+        } catch (HttpClientErrorException e) {
+            System.out.println("Erro no registo: " + e.getResponseBodyAsString());
+
+        } catch (ResourceAccessException e) {
+            System.out.println("Servidor indisponível.");
+
         } catch (Exception e) {
-            System.out.println("Erro ao registar conta.");
+            System.out.println("Erro inesperado.");
         }
     }
-
 
     public static void listarMinhasDespesas() {
         try {
@@ -179,7 +189,6 @@ public class MenuApp {
             System.out.println("Erro ao listar despesas.");
         }
     }
-
 
     public static void filtrarPorAno() {
         try {
@@ -195,6 +204,7 @@ public class MenuApp {
             System.out.println("Erro ao filtrar por ano.");
         }
     }
+    
     public static void filtrarPorCategoria() {
         try {
             listarCategorias();
@@ -210,7 +220,6 @@ public class MenuApp {
             System.out.println("Erro ao filtrar por categoria.");
         }
     }
-
 
     public static void filtrarPorValor() {
         try {
@@ -231,7 +240,6 @@ public class MenuApp {
         }
     }
 
-
     public static void mostrarTabela(Despesas[] lista) {
 
         if (lista == null || lista.length == 0) {
@@ -250,7 +258,6 @@ public class MenuApp {
                     d.getId() + " | " + d.getData() + " | " + d.getValor() + "€ | " + categoria + " | " + d.getDescricao());
         }
     }
-
 
     public static void listarCategorias() {
         try {
@@ -297,7 +304,6 @@ public class MenuApp {
         }
     }
 
-
     public static void criarCategoria() {
         System.out.print("Nome da categoria: ");
         String nome = scanner.nextLine();
@@ -321,7 +327,6 @@ public class MenuApp {
         }
     }
 
-
     public static void eliminarCategoria() {
         try {
             listarCategorias();
@@ -338,20 +343,19 @@ public class MenuApp {
         }
     }
 
-
     public static void eliminarDespesa() {
-    	try {
-    		listarMinhasDespesas();
-    		System.out.print("ID da despesa: ");
-    		Long id = Long.parseLong(scanner.nextLine());
+        try {
+            listarMinhasDespesas();
+            System.out.print("ID da despesa: ");
+            Long id = Long.parseLong(scanner.nextLine());
 
-    		String url = BASE_URL + "/despesas/" + id + "?userId=" + utilizadorLogado.getId();
-    		api.delete(url);
+            String url = BASE_URL + "/despesas/" + id + "?userId=" + utilizadorLogado.getId();
+            api.delete(url);
 
-    		System.out.println("Despesa eliminada.");
+            System.out.println("Despesa eliminada.");
 
-    	} catch (Exception e) {
-    		System.out.println("Erro ao eliminar despesa.");
-    	}
+        } catch (Exception e) {
+            System.out.println("Erro ao eliminar despesa.");
+        }
     }
 }

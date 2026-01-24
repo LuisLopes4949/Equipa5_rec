@@ -15,9 +15,17 @@ public class ErroResposta {
         this.detalhe = detalhe;
     }
 
-    // Getters e Setters
-    public LocalDateTime getDataHora() { return dataHora; }
-    public int getStatus() { return status; }
-    public String getMensagem() { return mensagem; }
-    public String getDetalhe() { return detalhe; }
+
+    public LocalDateTime getDataHora() { 
+    	return dataHora; 
+    	}
+    public int getStatus() { 
+    	return status; 
+    	}
+    public String getMensagem() { 
+    	return mensagem; 
+    	}
+    public String getDetalhe() { 
+    	return detalhe; 
+    	}
 }
