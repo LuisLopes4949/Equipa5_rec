@@ -6,6 +6,7 @@ import com.upt.lp.despesaspessoais.entity.Utilizador;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import java.time.format.DateTimeParseException;
 
 import java.time.LocalDate;
 import java.util.Scanner;
@@ -257,27 +258,48 @@ public class MenuApp {
         try {
             System.out.print("Descrição: ");
             String desc = scanner.nextLine();
+
             System.out.print("Valor: ");
             double valor = Double.parseDouble(scanner.nextLine().replace(",", "."));
+
+            System.out.print("Data (AAAA-MM-DD) [Enter para hoje]: ");
+            String dataTexto = scanner.nextLine();
+            
+            LocalDate dataDespesa;
+            
+            if (dataTexto.isBlank()) {
+             
+                dataDespesa = LocalDate.now();
+            } else {
+                try {
+                
+                    dataDespesa = LocalDate.parse(dataTexto); 
+                } catch (DateTimeParseException e) {
+                    System.out.println("⚠️ Formato de data inválido! A assumir data de hoje.");
+                    dataDespesa = LocalDate.now();
+                }
+            }
+           
+
             System.out.print("ID da categoria: ");
             Long catId = Long.parseLong(scanner.nextLine());
 
             Despesas d = new Despesas();
             d.setDescricao(desc);
             d.setValor(valor);
-            d.setData(LocalDate.now());
+            d.setData(dataDespesa); // Usa a data que definimos acima
 
             String url = BASE_URL + "/despesas?userId=" + utilizadorLogado.getId() + "&catId=" + catId;
+
             api.postForObject(url, d, Despesas.class);
-            System.out.println("Despesa criada.");
+            System.out.println("Despesa criada com sucesso em " + dataDespesa + ".");
 
         } catch (HttpClientErrorException e) {
             System.out.println("Erro: " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            System.out.println("Erro ao criar despesa.");
+            System.out.println("Erro ao criar despesa (verifica o formato do valor).");
         }
     }
-
     public static void criarCategoria() {
         System.out.print("Nome da categoria: ");
         String nome = scanner.nextLine();
